@@ -1,33 +1,69 @@
 # DeliverMate AI
 
-DeliverMate AI is an AI-assisted delivery workbench for turning raw customer materials into structured project outputs.
+> 让零散客户资料变成可协作、可交付、可追溯的项目文档。  
+> Turn raw customer materials into structured, collaborative delivery outputs.
 
-The app helps a delivery consultant, project assistant, product manager, or implementation team move from:
+## 中文介绍
+
+DeliverMate AI 是一个面向项目交付、需求整理、实施咨询与文档产出的 AI 工作台。
+
+它适合这样的场景：
+
+- 客户访谈记录很多，但需求信息零散
+- 会议纪要、业务背景、调研笔记难以快速整理成正式交付物
+- 需要从原始资料中提炼需求、功能点、测试场景和 UAT 内容
+- 希望围绕资料与文档继续做 AI 问答，而不是只做一次性生成
+
+DeliverMate 的核心目标不是做一个“万能项目管理系统”，而是帮助团队把非结构化输入更快转成：
+
+- 结构化分析结果
+- 可编辑的需求文档
+- 功能清单
+- 测试用例
+- UAT 表
+- 培训手册
+- 可检索的知识库上下文
+
+## 页面截图
+
+### 工作台首页
+
+![DeliverMate 工作台首页](./public/screenshots/workbench-home.png)
+
+### 知识库页面
+
+![DeliverMate 知识库页面](./public/screenshots/knowledge-base.png)
+
+## 当前功能
+
+- 文本资料录入
+- PDF / DOCX 上传与文本提取
+- AI 资料分析
+- 需求文档生成
+- 功能清单生成
+- 测试用例生成
+- UAT 表生成
+- 培训手册生成
+- 文档编辑与 Markdown 导出
+- 本地知识库同步
+- 基于资料、生成文档和知识分块的 AI 问答
+
+## 核心流程
+
+当前推荐链路：
 
 ```text
-Interview notes / meeting minutes / business context / scattered requirements
--> structured AI analysis
--> editable delivery documents
--> knowledge base and follow-up Q&A
+原始资料
+-> LLM 提取结构化 JSON
+-> 本地 Schema 校验
+-> 本地渲染交付文档
+-> 沉淀为知识资产与分块
+-> 继续问答 / 复用
 ```
 
-## Current scope
+这样设计的好处是把“事实提取”和“文档格式化”拆开，降低模型直接输出 Markdown 时的结构漂移风险。
 
-DeliverMate currently supports:
-
-- Text material intake
-- PDF / DOCX upload and text extraction
-- AI material analysis
-- Requirements document generation
-- Function list generation
-- Test case generation
-- UAT table generation
-- Training manual generation
-- Document editing and Markdown export
-- Local knowledge-base sync
-- AI chat grounded in materials, generated docs, and knowledge chunks
-
-## Tech stack
+## 技术栈
 
 - Next.js 16
 - React 19
@@ -35,23 +71,46 @@ DeliverMate currently supports:
 - Prisma
 - SQLite
 - Vitest
+- Playwright（用于本地页面截图与测试辅助）
 
-## AI architecture
+## 本地启动
 
-The current recommended pipeline is:
+### 1. 安装依赖
 
-```text
-Raw material
--> LLM extracts structured JSON
--> local schema validation
--> local document rendering
+```bash
+npm install
 ```
 
-This keeps factual extraction and document formatting separated, which reduces brittle direct Markdown generation.
+### 2. 初始化数据库
 
-## Environment
+```bash
+npm run db:generate
+npm run db:migrate
+```
 
-Copy `.env.example` to `.env` and fill in real values:
+### 3. 启动开发环境
+
+```bash
+npm run dev
+```
+
+打开：
+
+- [http://localhost:3000](http://localhost:3000)
+
+如果你希望局域网内其他设备访问：
+
+```bash
+npm run dev:network
+```
+
+然后使用你电脑真实的局域网 IP 访问，例如：
+
+- `http://192.168.x.x:3000`
+
+## 环境变量
+
+复制 `.env.example` 到 `.env` 后填写真实值：
 
 ```env
 DATABASE_URL="file:./dev.db"
@@ -62,7 +121,7 @@ DEEPSEEK_MODEL="deepseek-v4-flash"
 NEXT_PUBLIC_APP_NAME="DeliverMate AI"
 ```
 
-Optional MetaGPT bridge mode:
+### 可选：MetaGPT Bridge 模式
 
 ```env
 AI_PROVIDER="metagpt"
@@ -73,37 +132,13 @@ METAGPT_ALLOW_DEEPSEEK_FALLBACK="true"
 METAGPT_BACKEND="mock"
 ```
 
-## Local development
+说明：
 
-Install dependencies and initialize the database:
+- 仓库不会包含真实 API Key
+- `.env`、本地数据库、构建产物和缓存都已默认忽略
+- `.env.example` 只提供安全示例配置
 
-```bash
-npm install
-npm run db:generate
-npm run db:migrate
-```
-
-Start locally:
-
-```bash
-npm run dev
-```
-
-Open:
-
-- [http://localhost:3000](http://localhost:3000)
-
-To expose the dev server on your local network:
-
-```bash
-npm run dev:network
-```
-
-Then access it with your machine's real LAN IP, for example:
-
-- `http://192.168.x.x:3000`
-
-## Validation
+## 验证命令
 
 ```bash
 npm test
@@ -111,38 +146,65 @@ npm run lint
 npm run build
 ```
 
-## Project structure
+## 项目结构
 
 - `src/app/`
-  Next.js app routes and API routes
+  Next.js 路由与 API 路由
 - `src/components/`
-  UI shell, workbench, and knowledge-base clients
+  工作台、知识库和共享 UI 组件
 - `src/lib/ai/`
-  AI provider abstraction, schemas, renderers, and bridge logic
+  AI provider 抽象、Schema、渲染器与 bridge 逻辑
 - `src/lib/knowledge-base.ts`
-  Knowledge asset synchronization, chunking, and retrieval
+  知识资产同步、切块和检索
 - `src/lib/rag.ts`
-  Chunking and keyword extraction utilities
+  切块与关键词提取逻辑
 - `prisma/`
-  Database schema and seed data
+  数据库 schema 与 seed
 - `docs/`
-  Specs, plans, and implementation notes
+  设计文档、计划与交接文档
 
 ## Roadmap
 
-Near-term priorities:
+近期优先事项：
 
-- Multiplayer collaboration
-- Workspace and member permissions
-- Comments and review workflow
-- Document version history
-- Approval / handoff flow
+- 多人协作
+- 工作空间与成员权限
+- 评论 / 审核流程
+- 文档版本历史
+- 交付审批与交接链路
 
-See:
+参考计划：
 
-- [Multiplayer collaboration plan](./docs/superpowers/plans/2026-05-05-multiplayer-collaboration.md)
+- [多人协作实施计划](./docs/superpowers/plans/2026-05-05-multiplayer-collaboration.md)
+
+## English Summary
+
+DeliverMate AI is an AI-assisted delivery workbench for consultants, delivery teams, and product operators.
+
+It helps teams convert messy customer-facing inputs such as interview notes, meeting minutes, business context, and scattered requirements into:
+
+- structured analysis
+- editable requirements documents
+- function lists
+- test cases
+- UAT tables
+- training manuals
+- reusable knowledge-base context
+
+Recommended pipeline:
+
+```text
+Raw material
+-> LLM extracts structured JSON
+-> local validation
+-> local document rendering
+-> knowledge-base sync
+-> follow-up AI Q&A
+```
+
+This keeps extraction and formatting separate, which makes the output more stable and easier to evolve.
 
 ## Notes
 
-- The app currently uses SQLite for local development.
-- Build output still shows one existing `metagpt`-related Turbopack tracing warning; this is known and not introduced by the current UI work.
+- The project currently uses SQLite for local development.
+- There is still one existing `metagpt`-related Turbopack tracing warning during build. It is known and not caused by the current UI or README work.
