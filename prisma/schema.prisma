@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model SourceMaterial {
+  id              String           @id @default(cuid())
+  title           String
+  type            String           @default("meeting")
+  content         String
+  fileName        String?
+  mimeType        String?
+  source          String           @default("manual")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  analyses        AnalysisResult[]
+  documents       GeneratedDocument[]
+  messages        ChatMessage[]
+  knowledgeAssets KnowledgeAsset[]
+}
+
+model AnalysisResult {
+  id                    String         @id @default(cuid())
+  sourceMaterialId      String
+  summary               String
+  background            String         @default("")
+  goals                 String         @default("[]")
+  painPoints            String         @default("[]")
+  roles                 String         @default("[]")
+  processNotes          String         @default("[]")
+  requirementCandidates String         @default("[]")
+  functionCandidates    String         @default("[]")
+  risks                 String         @default("[]")
+  openQuestions         String         @default("[]")
+  createdAt             DateTime       @default(now())
+  sourceMaterial        SourceMaterial @relation(fields: [sourceMaterialId], references: [id], onDelete: Cascade)
+  documents             GeneratedDocument[]
+}
+
+model GeneratedDocument {
+  id               String          @id @default(cuid())
+  sourceMaterialId String
+  analysisResultId String?
+  type             String
+  title            String
+  content          String
+  format           String          @default("markdown")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  sourceMaterial   SourceMaterial  @relation(fields: [sourceMaterialId], references: [id], onDelete: Cascade)
+  analysisResult   AnalysisResult? @relation(fields: [analysisResultId], references: [id], onDelete: SetNull)
+  knowledgeAssets  KnowledgeAsset[]
+}
+
+model ChatMessage {
+  id               String         @id @default(cuid())
+  sourceMaterialId String
+  role             String
+  content          String
+  createdAt        DateTime       @default(now())
+  sourceMaterial   SourceMaterial @relation(fields: [sourceMaterialId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeAsset {
+  id                  String             @id @default(cuid())
+  sourceMaterialId    String
+  generatedDocumentId String?            @unique
+  submissionKey       String?
+  category            String
+  title               String
+  content             String
+  sourceType          String
+  fileName            String?
+  mimeType            String?
+  format              String             @default("text")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  sourceMaterial      SourceMaterial     @relation(fields: [sourceMaterialId], references: [id], onDelete: Cascade)
+  generatedDocument   GeneratedDocument? @relation(fields: [generatedDocumentId], references: [id], onDelete: Cascade)
+  chunks              KnowledgeChunk[]
+
+  @@unique([sourceMaterialId, submissionKey])
+  @@index([sourceMaterialId, category, updatedAt])
+  @@index([sourceMaterialId, updatedAt])
+}
+
+model KnowledgeChunk {
+  id               String         @id @default(cuid())
+  knowledgeAssetId String
+  ordinal          Int
+  text             String
+  keywords         String         @default("[]")
+  createdAt        DateTime       @default(now())
+  knowledgeAsset   KnowledgeAsset @relation(fields: [knowledgeAssetId], references: [id], onDelete: Cascade)
+
+  @@index([knowledgeAssetId, ordinal])
+}

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash UI - 资料转报告工作台</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap');
+
+        :root {
+            --bg: #F0F2F5;
+            --bone-white: #FFFFFF;
+            --text-main: #1D1D1F;
+            --text-secondary: #86868B;
+            --accent: #0071E3;
+            --shadow-out: 12px 12px 24px #d1d9e6, -12px -12px 24px #ffffff;
+            --shadow-in: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #ffffff;
+            --press-duration: 0.2s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* The Monolithic Slab */
+        .workbench {
+            width: 92vw;
+            height: 88vh;
+            background: var(--bone-white);
+            border-radius: 40px;
+            box-shadow: var(--shadow-out);
+            display: grid;
+            grid-template-columns: 320px 1fr 380px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Sidebar / Material Zone */
+        .zone-material {
+            padding: 40px 30px;
+            border-right: 1px solid #F0F0F2;
+            background: linear-gradient(145deg, #ffffff, #f5f5f7);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .label::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .upload-area {
+            flex-grow: 1;
+            border-radius: 20px;
+            box-shadow: var(--shadow-in);
+            border: 1px solid rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .upload-area:hover {
+            transform: scale(0.98);
+        }
+
+        .upload-area p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        /* Center / Process Zone */
+        .zone-process {
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            background: #FFFFFF;
+            position: relative;
+        }
+
+        .editor-container {
+            flex-grow: 1;
+            box-shadow: var(--shadow-in);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #424245;
+            outline: none;
+            overflow-y: auto;
+        }
+
+        /* Right / Report Zone */
+        .zone-report {
+            padding: 40px 30px;
+            background: #F9F9FB;
+            border-left: 1px solid #F0F0F2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-preview {
+            flex-grow: 1;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 40px;
+            font-family: "Source Han Serif SC", serif;
+        }
+
+        .report-preview h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 10px;
+        }
+
+        .report-preview p {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        /* Script-Press Buttons */
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn-physical {
+            background: var(--bone-white);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            box-shadow: var(--shadow-out);
+            cursor: pointer;
+            transition: all var(--press-duration) cubic-bezier(0.2, 0, 0, 1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-physical:active {
+            box-shadow: var(--shadow-in);
+            transform: translateY(2px);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 6px 6px 12px rgba(0, 113, 227, 0.3), -6px -6px 12px rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-primary:active {
+            box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Subtle Mono Details */
+        .data-stream {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            opacity: 0.6;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-reveal {
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E0E0E0; border-radius: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="workbench animate-reveal">
+        
+        <!-- Left: Material Input -->
+        <section class="zone-material">
+            <div class="label">素材源库 / MATERIAL</div>
+            <div class="upload-area">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>点击或拖拽上传<br><span style="font-size: 11px; opacity: 0.6;">支持 PDF, TXT, Markdown</span></p>
+            </div>
+            <div class="data-stream">
+                STATUS: READY<br>
+                BUFFER: 0.0KB<br>
+                ENCODING: UTF-8
+            </div>
+        </section>
+
+        <!-- Center: Processing Zone -->
+        <section class="zone-process">
+            <div class="label">逻辑处理 / PROCESSING</div>
+            <div class="editor-container" contenteditable="true" spellcheck="false">
+                在此输入或粘贴需要转换的原始资料内容...
+                <br><br>
+                系统将根据内置的“Script-Press”逻辑，将非结构化信息重组为专业行业报告。
+            </div>
+            <div class="controls">
+                <button class="btn-physical">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M9 17l3 3 3-3"/></svg>
+                    存为草稿
+                </button>
+                <button class="btn-physical btn-primary" onclick="generateReport()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    开始压制报告
+                </button>
+            </div>
+        </section>
+
+        <!-- Right: Report Preview -->
+        <section class="zone-report">
+            <div class="label">最终报告 / OUTPUT</div>
+            <div class="report-preview" id="report">
+                <div style="opacity: 0.3; text-align: center; margin-top: 100px;">
+                    <p>等待压制生成...</p>
+                    <div class="data-stream">IDLE_STATE</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button class="btn-physical" style="padding: 10px 20px; font-size: 13px;">
+                    导出 PDF
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function generateReport() {
+            const reportArea = document.getElementById('report');
+            reportArea.style.opacity = '0.5';
+            
+            // Simulate "Script-Press" motion
+            setTimeout(() => {
+                reportArea.style.opacity = '1';
+                reportArea.innerHTML = `
+                    <h1 class="animate-reveal">行业趋势分析报告</h1>
+                    <p class="animate-reveal" style="animation-delay: 0.1s"><strong>摘要：</strong> 基于输入资料的深度结构化处理，本报告旨在阐述当前市场环境下的核心增长点与潜在风险。</p>
+                    <p class="animate-reveal" style="animation-delay: 0.2s"><strong>核心观察：</strong></p>
+                    <ul class="animate-reveal" style="animation-delay: 0.3s; margin-left: 20px; font-size: 14px; line-height: 2;">
+                        <li>数字化转型进入深水区</li>
+                        <li>用户留存策略向情感化方向迁移</li>
+                        <li>极简主义美学对工具类产品的效率提升效应</li>
+                    </ul>
+                    <div class="data-stream animate-reveal" style="animation-delay: 0.4s; margin-top: 40px; border-top: 1px solid #EEE; padding-top: 20px;">
+                        GEN_TIMESTAMP: ${new Date().toISOString()}<br>
+                        ALGO_VERSION: 2.0.4-STABLE<br>
+                        VERIFY_HASH: 8x7f...2a1e
+                    </div>
+                `;
+            }, 800);
+        }
+    </script>
+</body>
+</html>
